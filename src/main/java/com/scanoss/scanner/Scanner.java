@@ -1,3 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2018-2020 SCANOSS LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.scanoss.scanner;
 
 import java.io.File;
@@ -22,31 +39,136 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class Scanner {
 
+	private static final String BLACKLIST_OPT = "blacklist";
+	private static final String IDENTIFY_OPT = "identify";
+	private static final String IGNORE_OPT = "ignore";
 	private static final String TMP_SCAN_WFP = "/tmp/scan.wfp";
 	private final ScannerConf scannerConf;
-	
 
 	public Scanner(ScannerConf scannerConf) {
 		super();
 		this.scannerConf = scannerConf;
-		
-	}
-	
-	public void scanFile(String filename, String scanType, String sbomPath, String format, String outfile) throws NoSuchAlgorithmException, IOException, InterruptedException {
-		String wfpString = Winnowing.wfpForFile(filename, filename);
-		FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfpString, StandardCharsets.UTF_8);
-		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format, outfile);
-		doScan(details);
-		
+
 	}
 
-	private void doScan(ScanDetails details) throws IOException, InterruptedException {
+	/**
+	 * Scans a file
+	 * 
+	 * @param filename path to the file to be scanned
+	 * @param scanType Type of scan, leave empty for default.
+	 * @param sbomPath Optional path to a valid SBOM.json file
+	 * @param format   Format of the scan. Leave empty for default value.
+	 * @return an InputStream with the response body
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public InputStream scanFile(String filename, ScanType scanType, String sbomPath, ScanFormat format)
+			throws NoSuchAlgorithmException, IOException, InterruptedException {
+		String wfpString = Winnowing.wfpForFile(filename, filename);
+		FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfpString, StandardCharsets.UTF_8);
+		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
+		return doScan(details);
+
+	}
+
+	/**
+	 * Scans a file and either saves it to a file or prints to STDOUT
+	 * 
+	 * @param filename path to the file to be scanned
+	 * @param scanType Type of scan, leave empty for default.
+	 * @param sbomPath Optional path to a valid SBOM.json file
+	 * @param format   Format of the scan. Leave empty for default value.
+	 * @param outfile  Output file, empty for output to STDOUT
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public void scanFileAndSave(String filename, ScanType scanType, String sbomPath, ScanFormat format, String outfile)
+			throws NoSuchAlgorithmException, IOException, InterruptedException {
+
+		InputStream inputStream = scanFile(filename, scanType, sbomPath, format);
+		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
+
+		IOUtils.copy(inputStream, out);
+
+	}
+
+	public void scanFileAndSave(String filename, ScanDetails scanDetails, String outfile)
+			throws NoSuchAlgorithmException, IOException, InterruptedException {
+		scanFileAndSave(filename, scanDetails.getScanType(), scanDetails.getSbomPath(), scanDetails.getFormat(),
+				outfile);
+
+	}
+
+	public static void main(String[] args) throws ParseException, NoSuchAlgorithmException, IOException, InterruptedException {
+		Options options = new Options();
+		options.addOption(new Option(IGNORE_OPT, true, "Scan and ignore components in SBOM file"));
+		options.addOption(new Option(IDENTIFY_OPT, true, "Scan and identify components in SBOM file"));
+		options.addOption(new Option(BLACKLIST_OPT, true, "Scan and blacklist components in SBOM file"));
+		options.addOption(new Option("o", "output", true, "Save output to file"));
+		options.addOption(
+				new Option("f", "format", true, "Optional format for the scan result. One of: plain, spdx, cyclonedx"));
+		options.addOption(new Option("h", false, "Shows usage"));
+		Option input = new Option("i", "input", true, "The file to be scanned");
+		input.setRequired(true);
+		options.addOption(input);
+		CommandLineParser parser = new DefaultParser();
+		CommandLine cmd = parser.parse(options, args);
+		if (ArrayUtils.isEmpty(args) || cmd.hasOption("h")) {
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp("scanner", options);
+		}
+		String filename = cmd.getOptionValue("i");
+
+		String outfilename = "";
+		String sbompath = "";
+		ScanType scanType = null;
+		if (cmd.hasOption("o")) {
+			outfilename = cmd.getOptionValue("o");
+		}
+		ScanFormat format = ScanFormat.plain;
+		if (cmd.hasOption("f")) {
+			format = ScanFormat.valueOf(cmd.getOptionValue("f"));
+		}
+		if (cmd.hasOption(IGNORE_OPT)) {
+			scanType = ScanType.ignore;
+			sbompath = cmd.getOptionValue(IGNORE_OPT);
+		} else if(cmd.hasOption(IDENTIFY_OPT)) {
+			scanType = ScanType.identify;
+			sbompath = cmd.getOptionValue(IDENTIFY_OPT);
+		} else if(cmd.hasOption(BLACKLIST_OPT)) {
+			scanType = ScanType.blacklist;
+			sbompath = cmd.getOptionValue(BLACKLIST_OPT);
+		}
+		
+		ScanDetails details = new ScanDetails(null, scanType,sbompath, format);
+		String overrideAPIURL = System.getenv("SCANOSS_API_URL");
+		String overrideAPIKEY = System.getenv("SCANOSS_API_KEY");
+		ScannerConf conf = ScannerConf.defaultConf();
+		if (StringUtils.isNotEmpty(overrideAPIURL)) {
+			conf = new ScannerConf(overrideAPIURL, overrideAPIKEY);
+		}
+		Scanner scanner = new Scanner(conf);
+		scanner.scanFileAndSave(filename, details, outfilename);
+
+	}
+
+	private InputStream doScan(ScanDetails details) throws IOException, InterruptedException {
 
 		Map<Object, Object> data = scanFormData(details);
 
@@ -59,21 +181,19 @@ public class Scanner {
 		HttpClient client = HttpClient.newBuilder().build();
 
 		HttpResponse<InputStream> response = client.send(request, BodyHandlers.ofInputStream());
-		
-		OutputStream out = StringUtils.isEmpty(details.getOutFile()) ? System.out : new FileOutputStream(new File(details.getOutFile()));
-		
-		IOUtils.copy(response.body(), out);
+
+		return response.body();
 
 	}
 
 	private static Map<Object, Object> scanFormData(ScanDetails details) throws IOException {
 		Map<Object, Object> data = new HashMap<>();
-		if (StringUtils.isNotEmpty(details.getScanType())) {
+		if (details.getScanType() != null) {
 			String sbomContents = FileUtils.readFileToString(new File(details.getSbomPath()), StandardCharsets.UTF_8);
 			data.put("type", details.getScanType());
 			data.put("assets", sbomContents);
 		}
-		if (StringUtils.isNotEmpty(details.getFormat())) {
+		if (details.getFormat() != null) {
 			data.put("format", details.getFormat());
 		}
 
@@ -82,7 +202,7 @@ public class Scanner {
 		return data;
 	}
 
-	public static BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary) throws IOException {
+	private static BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary) throws IOException {
 		var byteArrays = new ArrayList<byte[]>();
 		byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=")
 				.getBytes(StandardCharsets.UTF_8);

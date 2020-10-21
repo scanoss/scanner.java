@@ -1,3 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2018-2020 SCANOSS LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.scanoss.scanner;
 
 import java.io.File;
@@ -40,7 +57,7 @@ import org.apache.commons.io.FileUtils;
  * test-component.wfp
  * 
  * <pre>
- * component=f9fc398cec3f9dd52aa76ce5b13e5f75,test-component.zip file=cae3ae667a54d731ca934e2867b32aaa,948,test/test-file1.c<
+ * component=f9fc398cec3f9dd52aa76ce5b13e5f75,test-component.zip file=cae3ae667a54d731ca934e2867b32aaa,948,test/test-file1.c
  * 4=579be9fb
  * 5=9d9eefda,58533be6,6bb11697
  * 6=80188a22,f9bb9220

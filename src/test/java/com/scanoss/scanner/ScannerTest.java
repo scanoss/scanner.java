@@ -1,3 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2018-2020 SCANOSS LTD
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.scanoss.scanner;
 
 import org.junit.Test;
@@ -7,7 +24,7 @@ public class ScannerTest {
 	@Test
 	public void scanFile_try_c_plain() throws Exception{
 		Scanner scanner = new Scanner(ScannerConf.defaultConf());
-		scanner.scanFile("src/test/resources/try.c", "", "", "", "");
+		scanner.scanFileAndSave("src/main/java/com/scanoss/scanner/Winnowing.java", null, "", null, "");
 	}
 
 }
