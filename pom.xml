@@ -26,6 +26,21 @@
 		</repository>
 	</distributionManagement>
 
+	<licenses>
+		<license>
+			<name>GPL-2.0-or-later</name>
+			<url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Juan M Salamanca</name>
+			<email>juan.m.salamanca@scanoss.com</email>
+			<organization>SCANOSS</organization>
+			<organizationUrl>https://www.scanoss.com</organizationUrl>
+		</developer>
+	</developers>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -145,4 +160,5 @@
 
 	</dependencies>
 
+	<url>https://github.com/scanoss/scanner.java</url>
 </project>
