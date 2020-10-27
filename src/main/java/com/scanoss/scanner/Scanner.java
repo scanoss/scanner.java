@@ -31,9 +31,12 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,9 +54,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Scanner {
 
+	private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 	private static final String BLACKLIST_OPT = "blacklist";
 	private static final String IDENTIFY_OPT = "identify";
 	private static final String IGNORE_OPT = "ignore";
@@ -85,6 +91,40 @@ public class Scanner {
 		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
 		return doScan(details);
 
+	}
+
+	/**
+	 * Scans a directory and saves the result to a file or prints to STDOUT. 
+	 * @param dir Directory to scan
+	 * @param scanType Type of scan, leave empty for default.
+	 * @param sbomPath Optional path to a valid SBOM.json file
+	 * @param format   Format of the scan. Leave empty for default value.
+	 * @param outfile  Output file, empty for output to STDOUT
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public void scanDirectory(String dir, ScanType scanType, String sbomPath, ScanFormat format, String outfile) throws IOException, InterruptedException{
+		StringBuilder wfp = new StringBuilder();
+		Files.walkFileTree(Paths.get(dir), new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+					throws IOException {
+				if (!Files.isDirectory(file) && !BlacklistRules.hasBlacklistedExt(file.toString())) {
+					try {
+						wfp.append(Winnowing.wfpForFile(file.toString(), file.toString()));
+					} catch (NoSuchAlgorithmException | IOException e) {
+						log.warn("Exception while creating wfp for file: {}",file.toString(),e);
+					}
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		});
+		FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfp.toString(), StandardCharsets.UTF_8);
+		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
+		InputStream inputStream =  doScan(details);
+		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
+
+		IOUtils.copy(inputStream, out);
 	}
 
 	/**
