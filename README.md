@@ -34,4 +34,4 @@ Results are printed via STDOUT.
 
 # License
 
-scanner.java is released under the GPL 2.0 license. Please check the LICENSE file for further details.
+scanner.java is released under the Apache 2.0 license. Please check the LICENSE file for further details.
