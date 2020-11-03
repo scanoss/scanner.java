@@ -229,7 +229,7 @@ public class Scanner {
 
 	private static Map<Object, Object> scanFormData(ScanDetails details) throws IOException {
 		Map<Object, Object> data = new HashMap<>();
-		if (details.getScanType() != null) {
+		if (details.getScanType() != null && StringUtils.isNotEmpty(details.getSbomPath())) {
 			String sbomContents = FileUtils.readFileToString(new File(details.getSbomPath()), StandardCharsets.UTF_8);
 			data.put("type", details.getScanType());
 			data.put("assets", sbomContents);
