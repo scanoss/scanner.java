@@ -21,6 +21,7 @@ package com.scanoss.scanner;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class BlacklistRules {
@@ -44,7 +45,7 @@ public class BlacklistRules {
 	}
 
 	public static boolean hasBlacklistedExt(String filename) {
-		return StringUtils.isNotEmpty(filename) && BLACKLIST_EXTS.contains(filename);
+		return StringUtils.isNotEmpty(filename) && BLACKLIST_EXTS.contains(FilenameUtils.getExtension(filename));
 
 	}
 
