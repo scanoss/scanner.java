@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.scanoss</groupId>
 	<artifactId>scanner</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.5</version>
 	<name>scanner.java</name>
 	<description>Java implementation of a scanner that works with SCANOSS API and OSSKB.</description>
 	<organization>
