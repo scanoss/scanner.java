@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.scanoss</groupId>
 	<artifactId>scanner</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.4</version>
 	<name>scanner.java</name>
-	<description>Java implementation of a scanner that works with SCANOSS API and OSSKB. </description>
+	<description>Java implementation of a scanner that works with SCANOSS API and OSSKB.</description>
 	<organization>
 		<name>SCANOSS</name>
 		<url>https://www.scanoss.com</url>
@@ -23,6 +23,7 @@
 		<repository>
 			<id>ossrh</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+<!--			<url>https://oss.sonatype.org/service/local/repositories/releases/content/</url>-->
 		</repository>
 	</distributionManagement>
 
@@ -34,8 +35,8 @@
 	</licenses>
 	<developers>
 		<developer>
-			<name>Juan M Salamanca</name>
-			<email>juan.m.salamanca@scanoss.com</email>
+			<name>SCANOSS Dev</name>
+			<email>infra@scanoss.com</email>
 			<organization>SCANOSS</organization>
 			<organizationUrl>https://www.scanoss.com</organizationUrl>
 		</developer>
@@ -48,7 +49,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<release>12</release>
+					<source>11</source>
+					<target>11</target>
+					<release>11</release>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -99,6 +102,24 @@
 					</execution>
 				</executions>
 			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.sonatype.plugins</groupId>-->
+<!--				<artifactId>nexus-staging-maven-plugin</artifactId>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>default-deploy</id>-->
+<!--						<phase>deploy</phase>-->
+<!--						<goals>-->
+<!--							<goal>deploy</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--				<configuration>-->
+<!--					<serverId>ossrh</serverId>-->
+<!--					<nexusUrl>https://oss.sonatype.org/service/local/repositories/releases/</nexusUrl>-->
+<!--					<skipStaging>true</skipStaging>-->
+<!--				</configuration>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -111,11 +132,13 @@
 						</goals>
 					</execution>
 				</executions>
-
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
 				<version>1.5</version>
 				<executions>
 					<execution>
@@ -159,16 +182,12 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.30</version>
 		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
-
-
 	</dependencies>
-
 	<url>https://github.com/scanoss/scanner.java</url>
 </project>
