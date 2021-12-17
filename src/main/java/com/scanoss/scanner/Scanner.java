@@ -123,8 +123,11 @@ public class Scanner {
 		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
 		InputStream inputStream =  doScan(details);
 		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
-
 		IOUtils.copy(inputStream, out);
+		inputStream.close();
+		if ( ! StringUtils.isEmpty(outfile) )
+			out.close();
+
 	}
 
 	/**
@@ -144,9 +147,10 @@ public class Scanner {
 
 		InputStream inputStream = scanFile(filename, scanType, sbomPath, format);
 		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
-
 		IOUtils.copy(inputStream, out);
-
+		inputStream.close();
+		if ( ! StringUtils.isEmpty(outfile) )
+			out.close();
 	}
 
 	public void scanFileAndSave(String filename, ScanDetails scanDetails, String outfile)
@@ -166,13 +170,14 @@ public class Scanner {
 				new Option("f", "format", true, "Optional format for the scan result. One of: plain, spdx, cyclonedx"));
 		options.addOption(new Option("h", false, "Shows usage"));
 		Option input = new Option("i", "input", true, "The file to be scanned");
-		input.setRequired(true);
+		input.setRequired(false);
 		options.addOption(input);
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
 		if (ArrayUtils.isEmpty(args) || cmd.hasOption("h")) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("scanner", options);
+			System.exit(1);
 		}
 		String filename = cmd.getOptionValue("i");
 
