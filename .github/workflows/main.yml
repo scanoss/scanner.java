@@ -1,0 +1,38 @@
+name: Java with Nexus Repository
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Apache Maven Central
+      uses: actions/setup-java@v1
+      with: # running setup-java again overwrites the settings.xml
+        java-version: 11
+        server-id: ossrh 
+        server-username: OSSRH_USERNAME
+        server-password: OSSRH_TOKEN
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} 
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+    - name: Build with Maven
+      run: mvn package -Dgpg.skip=false --file pom.xml 
+    - name: Get package version
+      run: echo ::set-output name=PACKAGE_VERSION::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+      id: scanner-version
+    - name: Get Version
+      run: echo "Current package version is ${{ steps.scanner-version.outputs.PACKAGE_VERSION }}"
+    - name: Release to Central Repository
+      uses: samuelmeuli/action-maven-publish@master
+      with:
+        gpg_private_key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        nexus_username: ${{ secrets.OSSRH_USERNAME }}
+        nexus_password: ${{ secrets.OSSRH_TOKEN }}
+        server_id: ossrh
+
