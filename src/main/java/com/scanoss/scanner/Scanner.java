@@ -80,12 +80,11 @@ public class Scanner {
 	 * @param sbomPath Optional path to a valid SBOM.json file
 	 * @param format   Format of the scan. Leave empty for default value.
 	 * @return an InputStream with the response body
-	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
 	public InputStream scanFile(String filename, ScanType scanType, String sbomPath, ScanFormat format)
-			throws NoSuchAlgorithmException, IOException, InterruptedException {
+			throws IOException, InterruptedException {
 		String wfpString = Winnowing.wfpForFile(filename, filename);
 		if ( wfpString != null && ! wfpString.isEmpty() ) {
 			FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfpString, StandardCharsets.UTF_8);
@@ -107,17 +106,16 @@ public class Scanner {
 	 */
 	public void scanDirectory(String dir, ScanType scanType, String sbomPath, ScanFormat format, String outfile) throws IOException, InterruptedException{
 		StringBuilder wfp = new StringBuilder();
-		Files.walkFileTree(Paths.get(dir), new SimpleFileVisitor<Path>() {
+		Files.walkFileTree(Paths.get(dir), new SimpleFileVisitor<>() {
 			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-					throws IOException {
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 				if (!Files.isDirectory(file) && !BlacklistRules.hasBlacklistedExt(file.toString())) {
 					try {
 						String wfpString = Winnowing.wfpForFile(file.toString(), file.toString());
-						if ( wfpString != null && ! wfpString.isEmpty() )
+						if (wfpString != null && !wfpString.isEmpty())
 							wfp.append(wfpString);
 					} catch (Exception e) {
-						log.warn("Exception while creating wfp for file: {}",file.toString(),e);
+						log.warn("Exception while creating wfp for file: {}", file, e);
 					}
 				}
 				return FileVisitResult.CONTINUE;
@@ -126,7 +124,7 @@ public class Scanner {
 		FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfp.toString(), StandardCharsets.UTF_8);
 		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
 		InputStream inputStream =  doScan(details);
-		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
+		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(outfile);
 		IOUtils.copy(inputStream, out);
 		inputStream.close();
 		if ( ! StringUtils.isEmpty(outfile) )
@@ -151,7 +149,7 @@ public class Scanner {
 
 		InputStream inputStream = scanFile(filename, scanType, sbomPath, format);
 		if ( inputStream != null ) {
-			OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
+			OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(outfile);
 			IOUtils.copy(inputStream, out);
 			inputStream.close();
 			if (!StringUtils.isEmpty(outfile))

@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -153,7 +152,6 @@ public class Winnowing {
 	 * @param filename
 	 * @param filepath
 	 * @return
-	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 */
 	public static String wfpForFile(String filename, String filepath) throws IOException {
