@@ -87,10 +87,12 @@ public class Scanner {
 	public InputStream scanFile(String filename, ScanType scanType, String sbomPath, ScanFormat format)
 			throws NoSuchAlgorithmException, IOException, InterruptedException {
 		String wfpString = Winnowing.wfpForFile(filename, filename);
-		FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfpString, StandardCharsets.UTF_8);
-		ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
-		return doScan(details);
-
+		if ( wfpString != null && ! wfpString.isEmpty() ) {
+			FileUtils.writeStringToFile(new File(TMP_SCAN_WFP), wfpString, StandardCharsets.UTF_8);
+			ScanDetails details = new ScanDetails(TMP_SCAN_WFP, scanType, sbomPath, format);
+			return doScan(details);
+		}
+		return null;
 	}
 
 	/**
@@ -111,8 +113,10 @@ public class Scanner {
 					throws IOException {
 				if (!Files.isDirectory(file) && !BlacklistRules.hasBlacklistedExt(file.toString())) {
 					try {
-						wfp.append(Winnowing.wfpForFile(file.toString(), file.toString()));
-					} catch (NoSuchAlgorithmException | IOException e) {
+						String wfpString = Winnowing.wfpForFile(file.toString(), file.toString());
+						if ( wfpString != null && ! wfpString.isEmpty() )
+							wfp.append(wfpString);
+					} catch (Exception e) {
 						log.warn("Exception while creating wfp for file: {}",file.toString(),e);
 					}
 				}
@@ -146,11 +150,13 @@ public class Scanner {
 			throws NoSuchAlgorithmException, IOException, InterruptedException {
 
 		InputStream inputStream = scanFile(filename, scanType, sbomPath, format);
-		OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
-		IOUtils.copy(inputStream, out);
-		inputStream.close();
-		if ( ! StringUtils.isEmpty(outfile) )
-			out.close();
+		if ( inputStream != null ) {
+			OutputStream out = StringUtils.isEmpty(outfile) ? System.out : new FileOutputStream(new File(outfile));
+			IOUtils.copy(inputStream, out);
+			inputStream.close();
+			if (!StringUtils.isEmpty(outfile))
+				out.close();
+		}
 	}
 
 	public void scanFileAndSave(String filename, ScanDetails scanDetails, String outfile)

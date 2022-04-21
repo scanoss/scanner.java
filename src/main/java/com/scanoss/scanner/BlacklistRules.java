@@ -41,7 +41,7 @@ public class BlacklistRules {
 	}
 
 	public static boolean isMarkupOrJSON(String src) {
-		return (src.charAt(0) == '{' || src.startsWith("<?xml") || src.startsWith("<html") || src.startsWith("<AC3D"));
+		return ((src != null && src.length() > 0 ) && (src.charAt(0) == '{' || src.startsWith("<?xml") || src.startsWith("<html") || src.startsWith("<AC3D")));
 	}
 
 	public static boolean hasBlacklistedExt(String filename) {

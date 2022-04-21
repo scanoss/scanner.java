@@ -156,15 +156,15 @@ public class Winnowing {
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 */
-	public static String wfpForFile(String filename, String filepath) throws NoSuchAlgorithmException, IOException {
+	public static String wfpForFile(String filename, String filepath) throws IOException {
 		File file = new File(filepath);
 		String fileContents = FileUtils.readFileToString(file, Charset.defaultCharset());
 		String fileMD5 = DigestUtils.md5Hex(fileContents);
 
 		StringBuilder wfpBuilder = new StringBuilder();
 		wfpBuilder.append(String.format("file=%s,%d,%s\n", fileMD5, fileContents.length(), filename));
-		// Skip snippet analysis for binaries or non source code files.
-		if (isBinaryFile(file) || BlacklistRules.isMarkupOrJSON(fileContents)) {
+		// Skip snippet analysis for binaries or non source code files, or empty files.
+		if (fileContents.length() == 0 || isBinaryFile(file) || BlacklistRules.isMarkupOrJSON(fileContents)) {
 			return wfpBuilder.toString();
 		}
 		String gram = "";
