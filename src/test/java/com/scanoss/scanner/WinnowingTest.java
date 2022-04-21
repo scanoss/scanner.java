@@ -38,7 +38,15 @@ public class WinnowingTest {
 		String expectedWFP = FileUtils.readFileToString(new File("src/test/resources/Winnowing.java-scan.wfp"), Charset.defaultCharset());
 		
 		assertEquals(expectedWFP, actualWFP);
-		
+	}
+
+	@Test
+	public void wfpForEmptyfile() throws IOException {
+		String actualWFP1 = Winnowing.wfpForFile("empty.java", "src/test/resources/empty.java").trim();
+		String actualWFP2 = Winnowing.wfpForFile("empty.java", "src/test/resources/empty2.java").trim();
+
+		System.out.printf("Empty output: %s\n", actualWFP1 );
+		System.out.printf("Empty output: %s\n", actualWFP2 );
 	}
 
 }

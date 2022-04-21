@@ -28,4 +28,10 @@ public class ScannerTest {
 		scanner.scanFileAndSave("src/main/java/com/scanoss/scanner/Winnowing.java", null, "", null, "");
 	}
 
+	@Test
+	public void scanFile_try_empty() throws Exception{
+		Scanner scanner = new Scanner(ScannerConf.defaultConf());
+		scanner.scanFileAndSave("src/test/resources/empty.java", null, "", null, "");
+	}
+
 }
