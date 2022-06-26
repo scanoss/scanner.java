@@ -86,7 +86,6 @@ public class Winnowing {
 
 	private static final int GRAM = 30;
 	private static final int WINDOW = 64;
-
 	private static final long MAX_CRC32 = 4294967296L;
 
 	private static byte[] toLittleEndian(long number) {
@@ -146,6 +145,39 @@ public class Winnowing {
 		return sortedList.get(0);
 	}
 
+	private static String byteToHex(Byte num) {
+		char[] hexDigits = new char[2];
+		hexDigits[0] = Character.forDigit((num >> 4) & 0xF, 16);
+		hexDigits[1] = Character.forDigit((num & 0xF), 16);
+		return new String(hexDigits);
+	}
+
+	private static String encodeHexString(Byte[] byteArray) {
+		StringBuffer hexStringBuffer = new StringBuffer();
+		for (int i = 0; i < byteArray.length; i++) {
+			hexStringBuffer.append(byteToHex(byteArray[i]));
+		}
+		return hexStringBuffer.toString();
+	}
+
+	private static Byte CRC8(byte[] source, int offset, int length) {
+		int wCRCin = 0x00;
+        // Integer.reverse(0x31) >>> 24
+        int wCPoly = 0x8C;
+        for (int i = offset, cnt = offset + length; i < cnt; i++) {
+            wCRCin ^= ((long) source[i] & 0xFF);
+            for (int j = 0; j < 8; j++) {
+                if ((wCRCin & 0x01) != 0) {
+                    wCRCin >>= 1;
+                    wCRCin ^= wCPoly;
+                } else {
+                    wCRCin >>= 1;
+                }
+            }
+        }
+        return Byte.valueOf((byte) (wCRCin ^= 0x00));
+    }
+
 	/**
 	 * Calculates the WFP
 	 * 
@@ -160,6 +192,8 @@ public class Winnowing {
 		String fileMD5 = DigestUtils.md5Hex(fileContents);
 
 		StringBuilder wfpBuilder = new StringBuilder();
+		StringBuilder hpsmBuilder = new StringBuilder();
+		hpsmBuilder.append("hpsm=");
 		wfpBuilder.append(String.format("file=%s,%d,%s\n", fileMD5, fileContents.length(), filename));
 		// Skip snippet analysis for binaries or non source code files, or empty files.
 		if (fileContents.length() == 0 || isBinaryFile(file) || BlacklistRules.isMarkupOrJSON(fileContents)) {
@@ -173,18 +207,23 @@ public class Winnowing {
 		int lastLine = 0;
 		int line = 1;
 		String output = "";
-
+		String normalized_line = "";
+		ArrayList<Byte> lines_crc = new ArrayList<Byte>();
+		//byte lines_crc[] = new byte[MAX_LINES];
 		for (char c : fileContents.toCharArray()) {
 			if (c == '\n') {
+				lines_crc.add(CRC8(normalized_line.getBytes(), 0, normalized_line.length()));
 				line++;
 				normalized = 0;
+				normalized_line = "";
 			} else {
 				normalized = normalize(c);
+				
 			}
 
 			if (normalized > 0) {
 				gram += normalized;
-
+				normalized_line += normalized;
 				if (gram.length() >= GRAM) {
 					Long gramCRC32 = crc32c(gram);
 					window.add(gramCRC32);
@@ -221,8 +260,12 @@ public class Winnowing {
 		{
 			wfpBuilder.append(output + "\n");
 		}
-
-		return wfpBuilder.toString();
+		Byte aux [] = new Byte[lines_crc.size()];
+		aux = lines_crc.toArray(aux);
+		hpsmBuilder.append(encodeHexString((aux)));
+		hpsmBuilder.append("\n");
+		hpsmBuilder.append(wfpBuilder.toString());
+		return hpsmBuilder.toString();
 
 	}
 
