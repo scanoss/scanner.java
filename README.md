@@ -6,7 +6,7 @@ Simple Java implementation of a scanner for the OSSKB (Open Source KB).
 
 This project is not actively maintained.
 
-For an up-to-date API/SDK/CLI implementation, please refer to the [Python CLI](https://github.com/scanoss/scanoss.py).
+For an up-to-date API/SDK see the [SCANOSS Java Library](https://github.com/scanoss/scanoss.java) or the [Python CLI](https://github.com/scanoss/scanoss.py).
 
 # Usage
 The code can be used as a library, or as a CLI.
